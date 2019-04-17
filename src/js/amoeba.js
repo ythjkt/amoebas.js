@@ -4,9 +4,9 @@
  * GitHub: github.com/ythjkt/amoeba.js
  * v: 0.0.1 (Gamma)
  * -----------------------------------------------
- * TODOS:
+ * DONEs:
  * - Create move method
- *   - Options: contained, wrap, avoid etc
+ * TODOS:
  * - Create parent class Amoebas
  *   - Methods:
  *     - Update
@@ -22,13 +22,13 @@ import Vector from './Vector'
 import palettes from 'nice-color-palettes'
 
 let palette = palettes[Math.floor(Math.random() * 100)]
-let color1 = palette[0]
-let color2 = palette[1]
+let color1 = 'rgba(0,0,200,0.1)'
+let color2 = false //palette[1]
 
-function setUp(ctx, numOfPoints) {
-  let center = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2)
-  let amoeba = new Amoeba(ctx, center, numOfPoints)
-  amoeba.update()
+function setUp(ctx) {
+  let amoebas = new Amoebas(ctx, 4)
+  console.log(amoebas)
+  amoebas.update()
 }
 
 function easeMapping(from, to, span, time) {
@@ -43,6 +43,27 @@ function easeMapping(from, to, span, time) {
   }
 }
 
+function Amoebas(ctx, num) {
+  this.amoebas = []
+  this.ctx = ctx
+
+  let center = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2)
+
+  for (let i = 0; i < num; i++) {
+    this.amoebas.push(new Amoeba(ctx, center, 100))
+  }
+}
+
+Amoebas.prototype.update = function() {
+  const { ctx } = this
+  this.amoebas.forEach(amoeba => amoeba.update())
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+  this.amoebas.forEach(amoeba => amoeba.render())
+
+  window.requestAnimationFrame(this.update.bind(this))
+}
+
 function Amoeba(ctx, center, numOfPoints) {
   this.ctx = ctx
   this.center = center
@@ -50,13 +71,13 @@ function Amoeba(ctx, center, numOfPoints) {
   // Options
   this.numOfPoints = numOfPoints || 100
   this.radius = 100
-  this.span = 40
+  this.span = 80
   this.waveLength = 20 // numOfPoints must be divisable by waveLength
   this.spikyness = 0.5
   this.wiggle = true
 
   // Move options
-  this.movable = true
+  this.movable = false
   this.maxSpeed = 1
   this.moveMode = 'randomWalk'
   this.outMode = 'bounce'
@@ -200,10 +221,6 @@ Amoeba.prototype.update = function() {
   if (this.movable) {
     this.center = this.generateCenter()
   }
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-  this.render()
-  window.requestAnimationFrame(this.update.bind(this))
 }
 
 Amoeba.prototype.render = function() {
