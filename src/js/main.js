@@ -1,5 +1,5 @@
 import { resizeCanvas } from './functions'
-import setUp from './ameba'
+import setUp from './amoeba'
 import palettes from 'nice-color-palettes'
 
 const canvas = document.getElementById('myCanvas')

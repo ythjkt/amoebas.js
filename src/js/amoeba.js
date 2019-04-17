@@ -7,7 +7,7 @@
  * TODOS:
  * - Create move method
  *   - Options: contained, wrap, avoid etc
- * - Create parent class Amebas
+ * - Create parent class Amoebas
  *   - Methods:
  *     - Update
  *     - Render
@@ -18,6 +18,7 @@
  * ----------------------------------------------- */
 
 import random from './random'
+import Vector from './Vector'
 import palettes from 'nice-color-palettes'
 
 let palette = palettes[Math.floor(Math.random() * 100)]
@@ -25,9 +26,9 @@ let color1 = palette[0]
 let color2 = palette[1]
 
 function setUp(ctx, numOfPoints) {
-  let center = [ctx.canvas.width / 2, ctx.canvas.height / 2]
-  let ameba = new Ameba(ctx, center, numOfPoints)
-  ameba.update()
+  let center = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2)
+  let amoeba = new Amoeba(ctx, center, numOfPoints)
+  amoeba.update()
 }
 
 function easeMapping(from, to, span, time) {
@@ -42,17 +43,28 @@ function easeMapping(from, to, span, time) {
   }
 }
 
-function Ameba(ctx, center, numOfPoints) {
+function Amoeba(ctx, center, numOfPoints) {
   this.ctx = ctx
   this.center = center
 
   // Options
   this.numOfPoints = numOfPoints || 100
   this.radius = 100
-  this.span = 100
-  this.waveLength = 50 // numOfPoints must be divisable by waveLength
-  this.spikyness = 0.3
+  this.span = 40
+  this.waveLength = 20 // numOfPoints must be divisable by waveLength
+  this.spikyness = 0.5
   this.wiggle = true
+
+  // Move options
+  this.movable = true
+  this.maxSpeed = 1
+  this.moveMode = 'randomWalk'
+  this.outMode = 'bounce'
+
+  this.fromPosition = this.center
+  this.toPosition = this.center
+
+  this.randomWalk = this.generateRandomWalk()
 
   this.fillStyle = color1 || false
   this.strokeStyle = color2 || false
@@ -68,7 +80,7 @@ function Ameba(ctx, center, numOfPoints) {
 /**
  * Generates random radiuses for polar coordinates
  */
-Ameba.prototype.generateState = function() {
+Amoeba.prototype.generateState = function() {
   const { numOfPoints, waveLength, spikyness } = this
 
   let state = [],
@@ -106,7 +118,7 @@ Ameba.prototype.generateState = function() {
 /**
  * Generate Cartesian coordinates from polar radiuse
  */
-Ameba.prototype.generateCoords = function() {
+Amoeba.prototype.generateCoords = function() {
   const { fromState, toState, span, time, numOfPoints, radius, wiggle } = this
   let currentState = []
 
@@ -132,27 +144,73 @@ Ameba.prototype.generateCoords = function() {
   return coords
 }
 
-Ameba.prototype.update = function() {
+Amoeba.prototype.generateRandomWalk = function() {
+  const newDiff = new Vector(
+    this.maxSpeed * random(-1, 1),
+    this.maxSpeed * random(-1, 1)
+  ).mult(this.span / 2)
+  return this.randomWalk
+    ? this.randomWalk
+        .copy()
+        .mult(1 / 2)
+        .add(newDiff)
+    : newDiff
+}
+
+Amoeba.prototype.generatePosition = function() {
+  let newPosition = this.fromPosition.copy().add(this.randomWalk)
+
+  let maxRadius = this.radius * (1 + this.spikyness)
+  if (newPosition.x > this.ctx.canvas.width - maxRadius)
+    newPosition.x = this.ctx.canvas.width - maxRadius
+  else if (newPosition.x < 0 + maxRadius) newPosition.x = maxRadius
+  if (newPosition.y > this.ctx.canvas.height - maxRadius)
+    newPosition.y = this.ctx.canvas.height - maxRadius
+  else if (newPosition.y < 0 + maxRadius) newPosition.y = maxRadius
+
+  return newPosition
+}
+
+Amoeba.prototype.generateCenter = function() {
+  const { fromPosition, toPosition, span, time } = this
+
+  const x = easeMapping(fromPosition.x, toPosition.x, span, time)
+  const y = easeMapping(fromPosition.y, toPosition.y, span, time)
+
+  return new Vector(x, y)
+}
+
+Amoeba.prototype.update = function() {
   const ctx = this.ctx
   this.time = this.time + 1
   if (this.time === this.span) {
     this.fromState = this.toState
     this.toState = this.generateState(this.numOfPoints)
+
+    if (this.movable) {
+      this.fromPosition = this.toPosition
+      this.randomWalk = this.generateRandomWalk()
+      this.toPosition = this.generatePosition()
+    }
+
     this.time = 0
   }
 
   this.coords = this.generateCoords()
-
+  if (this.movable) {
+    this.center = this.generateCenter()
+  }
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
   this.render()
   window.requestAnimationFrame(this.update.bind(this))
 }
 
-Ameba.prototype.render = function() {
+Amoeba.prototype.render = function() {
   const { ctx, coords } = this
 
   ctx.save()
-  ctx.translate(this.center[0], this.center[1])
+  ctx.translate(this.center.x, this.center.y)
 
   ctx.beginPath()
   for (let i = 0; i < this.numOfPoints; i++) {
