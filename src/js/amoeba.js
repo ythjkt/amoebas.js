@@ -22,13 +22,26 @@ import Vector from './Vector'
 import palettes from 'nice-color-palettes'
 
 let palette = palettes[Math.floor(Math.random() * 100)]
-let color1 = 'rgba(0,0,200,0.1)'
+let color1 = 'rgba(255,255,255,0.1)'
 let color2 = false //palette[1]
 
 function setUp(ctx) {
-  let amoebas = new Amoebas(ctx, 4)
-  console.log(amoebas)
-  amoebas.update()
+  let biotope = new Biotope(ctx)
+
+  let center = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2)
+
+  biotope.addAmoeba(center, {
+    style: { fillStyle: palette[4] },
+    animation: { span: 100, startTime: 40 }
+  })
+  biotope.addAmoeba(center, {
+    style: { fillStyle: palette[0] },
+    animation: { startTime: 20 }
+  })
+  biotope.addAmoeba(center, { style: { fillStyle: palette[1] } })
+  biotope.addAmoeba(center, { style: { fillStyle: palette[2] } })
+  biotope.update()
+  window.biotope = biotope
 }
 
 function easeMapping(from, to, span, time) {
@@ -43,18 +56,33 @@ function easeMapping(from, to, span, time) {
   }
 }
 
-function Amoebas(ctx, num) {
-  this.amoebas = []
-  this.ctx = ctx
-
-  let center = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2)
-
-  for (let i = 0; i < num; i++) {
-    this.amoebas.push(new Amoeba(ctx, center, 100))
+function deepExtend(destination, source) {
+  for (let property in source) {
+    if (
+      source[property] &&
+      source[property].constructor &&
+      source[property].constructor === Object
+    ) {
+      destination[property] = destination[property] || {}
+      deepExtend(destination[property], source[property])
+    } else {
+      destination[property] = source[property]
+    }
   }
+  return destination
 }
 
-Amoebas.prototype.update = function() {
+function Biotope(ctx, num) {
+  this.amoebas = []
+  this.ctx = ctx
+}
+
+Biotope.prototype.addAmoeba = function(center, options) {
+  this.amoebas.push(new Amoeba(this.ctx, center, options))
+  window.amoeba = this.amoebas[0]
+}
+
+Biotope.prototype.update = function() {
   const { ctx } = this
   this.amoebas.forEach(amoeba => amoeba.update())
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -64,35 +92,41 @@ Amoebas.prototype.update = function() {
   window.requestAnimationFrame(this.update.bind(this))
 }
 
-function Amoeba(ctx, center, numOfPoints) {
+function Amoeba(ctx, center, options) {
   this.ctx = ctx
   this.center = center
 
-  // Options
-  this.numOfPoints = numOfPoints || 100
-  this.radius = 100
-  this.span = 80
-  this.waveLength = 20 // numOfPoints must be divisable by waveLength
-  this.spikyness = 0.5
-  this.wiggle = true
-
-  // Move options
-  this.movable = false
-  this.maxSpeed = 1
-  this.moveMode = 'randomWalk'
-  this.outMode = 'bounce'
+  this.options = deepExtend(
+    {
+      // static options
+      shape: {
+        numOfPoints: 100,
+        radius: 100,
+        waveLength: 20, // numOfPoints % waveLength must be 0
+        spikyness: 0.5
+      },
+      style: {
+        fillStyle: 'white', // false == nofill
+        strokeStyle: false,
+        lineWidth: 10
+      },
+      animation: {
+        span: 200,
+        startTime: 0,
+        wiggle: true,
+        movable: true,
+        maxSpeed: 0.1
+      }
+    },
+    options
+  )
 
   this.fromPosition = this.center
   this.toPosition = this.center
-
   this.randomWalk = this.generateRandomWalk()
 
-  this.fillStyle = color1 || false
-  this.strokeStyle = color2 || false
-  this.lineWidth = 10
-
   // Init
-  this.time = 0
+  this.time = this.options.animation.startTime
   this.fromState = this.generateState()
   this.toState = this.generateState()
   this.coords = this.generateCoords()
@@ -102,7 +136,7 @@ function Amoeba(ctx, center, numOfPoints) {
  * Generates random radiuses for polar coordinates
  */
 Amoeba.prototype.generateState = function() {
-  const { numOfPoints, waveLength, spikyness } = this
+  const { numOfPoints, waveLength, spikyness } = this.options.shape
 
   let state = [],
     original,
@@ -140,7 +174,9 @@ Amoeba.prototype.generateState = function() {
  * Generate Cartesian coordinates from polar radiuse
  */
 Amoeba.prototype.generateCoords = function() {
-  const { fromState, toState, span, time, numOfPoints, radius, wiggle } = this
+  const { fromState, toState, time } = this
+  const { numOfPoints, radius } = this.options.shape
+  const { span, wiggle } = this.options.animation
   let currentState = []
 
   // Interpolates radiuses from fromState and toState
@@ -166,10 +202,12 @@ Amoeba.prototype.generateCoords = function() {
 }
 
 Amoeba.prototype.generateRandomWalk = function() {
+  const { span, maxSpeed } = this.options.animation
+
   const newDiff = new Vector(
-    this.maxSpeed * random(-1, 1),
-    this.maxSpeed * random(-1, 1)
-  ).mult(this.span / 2)
+    maxSpeed * random(-1, 1),
+    maxSpeed * random(-1, 1)
+  ).mult(span / 2)
   return this.randomWalk
     ? this.randomWalk
         .copy()
@@ -179,9 +217,11 @@ Amoeba.prototype.generateRandomWalk = function() {
 }
 
 Amoeba.prototype.generatePosition = function() {
+  const { radius, spikyness } = this.options.shape
+
   let newPosition = this.fromPosition.copy().add(this.randomWalk)
 
-  let maxRadius = this.radius * (1 + this.spikyness)
+  let maxRadius = radius * (1 + spikyness)
   if (newPosition.x > this.ctx.canvas.width - maxRadius)
     newPosition.x = this.ctx.canvas.width - maxRadius
   else if (newPosition.x < 0 + maxRadius) newPosition.x = maxRadius
@@ -193,7 +233,8 @@ Amoeba.prototype.generatePosition = function() {
 }
 
 Amoeba.prototype.generateCenter = function() {
-  const { fromPosition, toPosition, span, time } = this
+  const { fromPosition, toPosition, time } = this
+  const { span } = this.options.animation
 
   const x = easeMapping(fromPosition.x, toPosition.x, span, time)
   const y = easeMapping(fromPosition.y, toPosition.y, span, time)
@@ -202,13 +243,14 @@ Amoeba.prototype.generateCenter = function() {
 }
 
 Amoeba.prototype.update = function() {
-  const ctx = this.ctx
-  this.time = this.time + 1
-  if (this.time === this.span) {
-    this.fromState = this.toState
-    this.toState = this.generateState(this.numOfPoints)
+  const { span, movable } = this.options.animation
 
-    if (this.movable) {
+  this.time = this.time + 1
+  if (this.time >= span) {
+    this.fromState = this.toState
+    this.toState = this.generateState()
+
+    if (movable) {
       this.fromPosition = this.toPosition
       this.randomWalk = this.generateRandomWalk()
       this.toPosition = this.generatePosition()
@@ -218,30 +260,31 @@ Amoeba.prototype.update = function() {
   }
 
   this.coords = this.generateCoords()
-  if (this.movable) {
+  if (movable) {
     this.center = this.generateCenter()
   }
 }
 
 Amoeba.prototype.render = function() {
   const { ctx, coords } = this
+  const { strokeStyle, lineWidth, fillStyle } = this.options.style
 
   ctx.save()
   ctx.translate(this.center.x, this.center.y)
 
   ctx.beginPath()
-  for (let i = 0; i < this.numOfPoints; i++) {
+
+  for (let i = 0; i < coords.length / 2; i++) {
     ctx.lineTo(coords[2 * i], coords[2 * i + 1])
   }
   ctx.lineTo(coords[0], coords[1])
-
-  if (this.fillStyle) {
-    ctx.fillStyle = this.fillStyle
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle
     ctx.fill()
   }
-  if (this.strokeStyle) {
-    ctx.lineWidth = this.lineWidth
-    ctx.strokeStyle = this.strokeStyle
+  if (strokeStyle) {
+    ctx.lineWidth = lineWidth
+    ctx.strokeStyle = strokeStyle
     ctx.stroke()
   }
 
