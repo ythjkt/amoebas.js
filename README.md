@@ -1,3 +1,5 @@
+# amoeba.js
+
 ### TODOs
 - Add gradient, image support
 - Add demo.html
