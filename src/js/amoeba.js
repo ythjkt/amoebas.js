@@ -20,7 +20,15 @@
 import Vector from './Vector'
 import { random, easeMapping, deepExtend } from './utils'
 
-function init(tagId = 'amoeba-js', options) {
+/*------- Biotope Class: Controls Amoeba Class -------*/
+export default function Biotope(ctx, options) {
+  this.amoebas = []
+  this.ctx = ctx
+  this.width = ctx.canvas.width / 2
+  this.height = ctx.canvas.height / 2
+}
+
+Biotope.init = function(tagId = 'amoeba-js', options) {
   let targetEl = document.querySelector(`#${tagId}`)
 
   if (targetEl) {
@@ -36,17 +44,8 @@ function init(tagId = 'amoeba-js', options) {
     ctx.scale(2, 2)
     targetEl.appendChild(canvas)
 
-    let biotope = new Biotope(ctx, options)
-    window.biotope = biotope
+    return new Biotope(ctx, options)
   }
-}
-
-/*------- Biotope Class: Controls Amoeba Class -------*/
-function Biotope(ctx, options) {
-  this.amoebas = []
-  this.ctx = ctx
-  this.width = ctx.canvas.width / 2
-  this.height = ctx.canvas.height / 2
 }
 
 Biotope.prototype.addAmoeba = function(center, options) {
@@ -75,7 +74,7 @@ Biotope.prototype.update = function() {
 }
 
 /*------- Amoeba Class -------*/
-function Amoeba(ctx, center, options) {
+export function Amoeba(ctx, center, options) {
   this.ctx = ctx
 
   if (typeof center === 'undefined') {
@@ -281,5 +280,3 @@ Amoeba.prototype.render = function() {
 
   ctx.restore()
 }
-
-export default init

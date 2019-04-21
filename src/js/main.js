@@ -1,17 +1,17 @@
-import init from './amoeba'
+import Biotope from './amoeba'
 import palettes from 'nice-color-palettes'
 
 let palette = pick(palettes)
-window.palette = palette
-init('amoeba-js')
+// let palette = ['#aaa', '#e1e1e1', '#eee']
+let biotope = Biotope.init('amoeba-js')
 
 let width = biotope.width
 let height = biotope.height
-let steps = 8
+let steps = 7
 
 let coords = []
 
-let padding = 80
+let padding = 100
 
 for (let i = 0; i < steps; i++) {
   for (let j = 0; j < steps; j++) {
@@ -25,14 +25,23 @@ coords.forEach(([x, y]) => {
 
   biotope.addAmoeba([x, y], {
     style: {
-      fillStyle: pick(palette),
-      strokeStyle: pick(palette),
-      lineWidth: 6
+      fillStyle: pick(palette)
     },
-    shape: { radius: pick([10, 15]), spikyness: 0.3, numOfPoints: 40 }
+    shape: {
+      radius: pick([15, 20]),
+      spikyness: 0.4,
+      numOfPoints: 80,
+      waveLength: 10
+    },
+    animation: {
+      span: pick([80]),
+      wiggle: true
+    }
   })
 })
 biotope.update()
+
+// biotope.ctx.canvas.style.backgroundColor = pick(palette)
 
 function pick(array) {
   return array[Math.floor(Math.random() * array.length)]
