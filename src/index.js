@@ -2,4 +2,4 @@
 
 const Biotope = require('./Biotope')
 
-module.exports = Biotope
+module.exports = Biotope.default || Biotope
