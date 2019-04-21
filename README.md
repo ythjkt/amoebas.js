@@ -1,6 +1,15 @@
-# amoeba.js
+## amoebas.js
+amoebas.js is a library for creating amoeba like organic animation
 
-### `Installation`
+:warning: work in progress
+
+<p align='center'>
+  <img src="/assets/img/amoebas-js.gif" width="33%">
+</p>
+
+## Getting started
+### `Download`
+via npm
 ```bash
 npm install amoebas.js
 ```
@@ -35,8 +44,8 @@ biotope.addAmoeba([x, y], options)
 biotope.update() 
 ```
 
-### `Options`
-#### Default
+## Options
+### `Default`
 ```javascript
 {
   shape: {
@@ -66,3 +75,5 @@ biotope.update()
   }
 }
 ```
+
+## Examples
