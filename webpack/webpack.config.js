@@ -3,10 +3,10 @@ const path = require('path')
 module.exports = {
   entry: './src/index.js',
   output: {
-    filename: '../dist/index.js',
     path: path.resolve(__dirname),
-    library: 'amoeba.js',
-    libraryTarget: 'umd'
+    filename: '../dist/index.js',
+    libraryTarget: 'umd',
+    library: 'Biotope'
   },
   module: {
     rules: [
