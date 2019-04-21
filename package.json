@@ -1,7 +1,7 @@
 {
-  "name": "amoeba",
-  "version": "1.0.0",
-  "description": "",
+  "name": "amoebas.js",
+  "version": "0.1.0",
+  "description": "A library for creating amoeba like organic animation",
   "main": "dist/index.js",
   "scripts": {
     "dev": "npm-run-all --parallel serve watch",
@@ -10,7 +10,7 @@
     "dist": "webpack --config ./webpack/webpack.config.js",
     "watch": "webpack --watch --config ./webpack/webpack.development.config.js"
   },
-  "author": "",
+  "author": "Yuta Hijikata",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.4.3",
@@ -26,11 +26,10 @@
     "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1"
-  },
-  "dependencies": {
+    "webpack-dev-server": "^3.2.1",
     "nice-color-palettes": "^2.0.0"
   },
+  "dependencies": {},
   "files": [
     "dist"
   ]
