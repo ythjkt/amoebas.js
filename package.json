@@ -1,6 +1,6 @@
 {
   "name": "amoebas.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A library for creating amoeba like organic animation",
   "main": "dist/index.js",
   "scripts": {

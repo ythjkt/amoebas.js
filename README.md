@@ -4,7 +4,7 @@ amoebas.js is a library for creating amoeba like organic animation
 :warning: work in progress
 
 <p align='center'>
-  <img src="/assets/img/amoebas-js.gif" width="33%">
+  <img src="https://raw.githubusercontent.com/ythjkt/amoebas.js/master/assets/img/amoebas-js.gif" width="33%">
 </p>
 
 ## Getting started
@@ -76,4 +76,7 @@ biotope.update()
 }
 ```
 
-## Examples
+## Working on
+- Adding click, hover events
+- Reducing numOfPoints by using quadraticCurve instead of lines
+- Split method (clone)
